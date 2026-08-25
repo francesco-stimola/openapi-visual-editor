@@ -52,17 +52,16 @@ body {
   border-bottom: 1px solid var(--app-border);
 }
 
-.app__brand h1 {
+.app__brand {
   margin: 0;
-  font-size: 1.15rem;
-  font-weight: 700;
-  line-height: 1.2;
+  line-height: 0;
 }
 
-.app__brand p {
-  margin: 0.15rem 0 0;
-  font-size: 0.8rem;
-  color: var(--app-muted);
+.app__brand img {
+  display: block;
+  height: 44px;
+  width: auto;
+  max-width: 100%;
 }
 
 .app__actions {
@@ -291,8 +290,9 @@ body {
     align-items: stretch;
   }
 
-  .app__brand {
-    text-align: center;
+  .app__brand img {
+    height: 36px;
+    margin: 0 auto;
   }
 
   .app__actions {

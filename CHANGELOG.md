@@ -10,6 +10,15 @@ Tutte le modifiche rilevanti di questo progetto sono documentate qui, nel format
 > rilascio le cui modifiche nessuno ha scritto non avviene. Le voci rispondono a *"cosa cambia
 > per chi usa l'applicazione?"*.
 
+## [1.0.1] — 2026-08-25
+
+### Modificato
+
+- **L'applicazione usa lo stesso logo del repository.** L'intestazione, che mostrava un titolo
+  testuale, ora presenta il logo nella variante compatta (marchio e nome, senza payoff: a quelle
+  dimensioni sarebbe illeggibile), e la scheda del browser ha finalmente una **favicon** ricavata
+  dal solo marchio. Entrambe le immagini nascono da `assets/logo.html`, unico sorgente del logo.
+
 ## [1.0.0] — 2026-08-25
 
 Prima pubblicazione.
@@ -41,4 +50,5 @@ Prima pubblicazione.
 - L'avvio scarica circa 320 kB: l'editor e le sue dipendenze (PatternFly, modelli OpenAPI) sono
   caricati in lazy solo quando si apre o si crea una specifica.
 
+[1.0.1]: https://github.com/francesco-stimola/openapi-visual-editor/releases/tag/v1.0.1
 [1.0.0]: https://github.com/francesco-stimola/openapi-visual-editor/releases/tag/v1.0.0

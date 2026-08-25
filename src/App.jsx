@@ -1,4 +1,7 @@
 import { Suspense, lazy, useCallback, useRef, useState } from 'react'
+// Variante compatta dello stesso logo del README (assets/logo.html ne è il sorgente):
+// alle dimensioni dell'header il payoff sarebbe illeggibile.
+import logoUrl from '../assets/logo-compact.png'
 import {
   ACCEPTED_EXTENSIONS,
   FORMATS,
@@ -123,10 +126,10 @@ export default function App() {
       onDrop={handleDrop}
     >
       <header className="app__header">
-        <div className="app__brand">
-          <h1>OpenAPI Visual Editor</h1>
-          <p>Swagger 2.0 e OpenAPI 3.x, elaborati solo nel tuo browser.</p>
-        </div>
+        <h1 className="app__brand">
+          {/* Il payoff è già nel logo: ripeterlo accanto sarebbe una didascalia di sé stesso. */}
+          <img src={logoUrl} alt="OpenAPI Visual Editor — il file non lascia il browser" />
+        </h1>
 
         <div className="app__actions">
           <input
