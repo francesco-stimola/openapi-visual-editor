@@ -59,9 +59,16 @@ la procedura vive qui.
   git tag -a v1.0.0 -m "v1.0.0" && git push origin v1.0.0  # pubblica su Pages
   ```
 
-- L'abilitazione di Pages è automatica: `build.yml` esegue `actions/configure-pages` con
-  `enablement: true`, quindi non serve toccare Settings → Pages. Se l'organizzazione lo
-  impedisce, ripiegare sull'impostazione manuale **Settings → Pages → Source: GitHub Actions**.
+- **Ogni tag richiede la sua voce in [CHANGELOG.md](CHANGELOG.md)**, aggiunta *prima* di
+  staccarlo: il job `changelog` di `deploy.yml` estrae la sezione `## [x.y.z]` corrispondente e
+  fallisce se non la trova, quindi un tag non descritto non pubblica né sito né release. La
+  sezione estratta diventa il corpo della release su GitHub, perciò va scritta per chi usa
+  l'applicazione ("cosa cambia per me?"), non come elenco di commit.
+
+- Prerequisito una tantum, manuale: **Settings → Pages → Source: GitHub Actions**.
+  Non è automatizzabile dal workflow: `actions/configure-pages` con `enablement: true` fallisce
+  con "Resource not accessible by integration", perché il `GITHUB_TOKEN` non può creare il sito
+  Pages (verificato sul tag v1.0.0). Senza questo passaggio il job di deploy fallisce.
   Il sito finisce su `https://<utente>.github.io/<repository>/`.
 - Le action sono aggiornate alle major che girano su Node 24 (i runner hanno deprecato Node 20):
   `checkout@v7`, `setup-node@v7`, `upload-artifact@v7`, `upload-pages-artifact@v5`,

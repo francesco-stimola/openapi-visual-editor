@@ -57,14 +57,10 @@ jobs:
           test -n "$(ls -A dist/assets)" || { echo "dist/assets vuota"; exit 1; }
           echo "dist OK — $(find dist -type f | wc -l) file"
 
-      # Abilita GitHub Pages in modalità "GitHub Actions" se non è già configurato, così il
-      # primo rilascio non richiede un passaggio manuale in Settings -> Pages.
-      - name: Setup Pages
-        if: inputs.pages-artifact
-        uses: actions/configure-pages@v6
-        with:
-          enablement: true
-
+      # Niente actions/configure-pages: con enablement: true il GITHUB_TOKEN non riesce a creare
+      # il sito ("Resource not accessible by integration"), e senza enablement il passo non
+      # servirebbe a nulla, dato che il base path lo calcola vite.config.js. L'abilitazione di
+      # Pages resta un'operazione manuale una tantum (Settings -> Pages -> Source: GitHub Actions).
       - name: Upload Pages artifact
         if: inputs.pages-artifact
         uses: actions/upload-pages-artifact@v5
