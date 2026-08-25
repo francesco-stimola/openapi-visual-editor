@@ -1,0 +1,53 @@
+name: Deploy to GitHub Pages
+
+# Rilascio: pubblica dist/ su GitHub Pages SOLO quando viene creato un tag `v*.*.*`.
+# Il push su main non pubblica più nulla (lo verifica soltanto: ci.yml), così main resta un
+# ramo di lavoro e ogni pubblicazione corrisponde a una versione tracciabile.
+#
+#   git tag -a v1.0.0 -m "v1.0.0" && git push origin v1.0.0
+#
+# `workflow_dispatch` resta disponibile come via di fuga per ripubblicare a mano (Actions ->
+# "Deploy to GitHub Pages" -> "Run workflow"); per la sola verifica di un branch, senza
+# pubblicare, usare invece "Manual build".
+on:
+  push:
+    tags: ['v*.*.*']
+  workflow_dispatch:
+
+# Minimo privilegio a livello di workflow: i permessi di scrittura su Pages sono concessi
+# solo ai due job che ne hanno davvero bisogno.
+permissions:
+  contents: read
+
+# Un solo deploy per volta. cancel-in-progress: false perché interrompere una pubblicazione
+# a metà lascerebbe il sito in uno stato indeterminato.
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    # Stesso workflow usato da CI e dalla build manuale: il pacchetto pubblicato è prodotto
+    # esattamente dagli stessi passi già verificati su main.
+    uses: ./.github/workflows/build.yml
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    with:
+      pages-artifact: true
+
+  deploy:
+    name: deploy
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

@@ -1,0 +1,23 @@
+name: Manual build
+
+# Build di validazione on-demand da un branch qualsiasi: il modo per verificare (e scaricare)
+# la cartella dist SENZA staccare un tag e senza pubblicare nulla.
+# Esegue lo STESSO build.yml del rilascio, quindi i due non possono divergere, ma non ha il job
+# di deploy: da qui è impossibile pubblicare per sbaglio su GitHub Pages.
+#
+# Come si usa: tab Actions -> "Manual build" -> "Run workflow" -> scegliere il branch.
+# L'artifact prodotto è usa e getta (30 giorni), perché una build manuale è quasi sempre
+# una verifica una tantum.
+on:
+  workflow_dispatch:
+
+# Minimo privilegio: chiama solo il workflow di build, che legge il repository e basta.
+permissions:
+  contents: read
+
+jobs:
+  build:
+    uses: ./.github/workflows/build.yml
+    with:
+      pages-artifact: false
+      retention-days: 30

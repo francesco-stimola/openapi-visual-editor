@@ -1,0 +1,22 @@
+name: CI
+
+# Gate di correttezza su main e sulle pull request: verifica che il progetto compili sempre.
+# Non pubblica niente — il push su main NON provoca più alcun deploy: quello avviene solo
+# su tag `v*.*.*` (deploy.yml). Serve a far arrivare su main solo commit che buildano,
+# incluse le PR di bump delle dipendenze.
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+# Minimo privilegio: compilare richiede solo la lettura del repository.
+permissions:
+  contents: read
+
+jobs:
+  build:
+    # Stesso workflow di build usato dal rilascio: se qui passa, il tag userà lo stesso codice.
+    uses: ./.github/workflows/build.yml
+    with:
+      pages-artifact: false
+      retention-days: 7

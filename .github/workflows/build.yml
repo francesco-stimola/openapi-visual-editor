@@ -1,0 +1,70 @@
+name: Build
+
+# Workflow riutilizzabile: è l'UNICO punto in cui il progetto viene compilato.
+# Lo chiamano ci.yml (gate su push/PR), manual-build.yml (build on-demand da un branch
+# qualsiasi) e deploy.yml (rilascio su tag), così le tre pipeline non possono divergere.
+#
+# Non pubblica nulla: la pubblicazione su GitHub Pages avviene solo nel job `deploy` di
+# deploy.yml, che è l'unico a possedere i permessi `pages: write` / `id-token: write`.
+on:
+  workflow_call:
+    inputs:
+      pages-artifact:
+        description: >-
+          true = carica dist/ nel formato richiesto da actions/deploy-pages (solo per il rilascio);
+          false = carica dist/ come artifact ordinario, scaricabile dalla tab Actions.
+        type: boolean
+        default: false
+      retention-days:
+        description: Giorni di conservazione dell'artifact ordinario.
+        type: number
+        default: 7
+
+# Nessun blocco `permissions` qui di proposito: un workflow riutilizzabile eredita i permessi
+# di chi lo chiama e può solo ridurli. Dichiararli qui impedirebbe a deploy.yml di concedere
+# `pages: write` al job di build. Il minimo privilegio è quindi definito nei tre chiamanti.
+
+jobs:
+  build:
+    name: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+
+      # npm ci (non npm install) per compilare esattamente le versioni del package-lock.
+      - name: Install
+        run: npm ci
+
+      # VITE_REPO_NAME determina il base path "/<repository>/" richiesto da GitHub Pages.
+      # Se non fosse valorizzata, vite.config.js userebbe comunque GITHUB_REPOSITORY, che
+      # Actions imposta da sé: è esplicitata solo per rendere leggibile da dove arriva il base.
+      - name: Build
+        env:
+          VITE_REPO_NAME: ${{ github.event.repository.name }}
+        run: npm run build
+
+      # La build di Vite non fallisce se un plugin svuota l'output: questo lo rende un errore.
+      - name: Verify dist
+        run: |
+          test -f dist/index.html || { echo "dist/index.html mancante"; exit 1; }
+          test -n "$(ls -A dist/assets)" || { echo "dist/assets vuota"; exit 1; }
+          echo "dist OK — $(find dist -type f | wc -l) file"
+
+      - name: Upload Pages artifact
+        if: inputs.pages-artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist
+
+      - name: Upload dist artifact
+        if: ${{ !inputs.pages-artifact }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: dist-${{ github.sha }}
+          path: dist
+          retention-days: ${{ inputs.retention-days }}
