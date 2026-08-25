@@ -10,9 +10,12 @@ name: Deploy to GitHub Pages
 # Prerequisito una tantum, non automatizzabile: Settings -> Pages -> Source: GitHub Actions
 # (il GITHUB_TOKEN non può creare il sito Pages, vedi il commento in build.yml).
 #
-# `workflow_dispatch` resta disponibile come via di fuga per ripubblicare a mano il sito (Actions
-# -> "Deploy to GitHub Pages" -> "Run workflow"): in quel caso non viene creata alcuna release,
-# perché una release senza tag non esiste. Per la sola verifica di un branch usare "Manual build".
+# `workflow_dispatch` resta come via di fuga per ripubblicare a mano il sito (Actions -> "Deploy
+# to GitHub Pages" -> "Run workflow"): non crea alcuna release, perché una release senza tag non
+# esiste. Attenzione: l'ambiente `github-pages` ammette solo i ref elencati nelle sue deployment
+# rules; oggi c'è il solo `v*.*.*` (tag), quindi un'esecuzione manuale da `main` verrebbe
+# rifiutata finché non si aggiunge anche una regola di branch per `main`.
+# Per la sola verifica di un branch, senza pubblicare, usare "Manual build".
 on:
   push:
     tags: ['v*.*.*']
@@ -54,6 +57,14 @@ jobs:
             echo "Aggiungere una voce '## [$version] — AAAA-MM-GG' prima di ripubblicare il tag."
             exit 1
           fi
+          # Rimanda al changelog completo: la release mostra solo la propria sezione, mentre
+          # il file al tag conserva anche la storia delle versioni precedenti.
+          {
+            echo
+            echo "---"
+            echo
+            echo "📓 [Changelog completo](${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/blob/${GITHUB_REF_NAME}/CHANGELOG.md) · [Sito pubblicato](https://${GITHUB_REPOSITORY_OWNER}.github.io/${GITHUB_REPOSITORY#*/}/)"
+          } >> release-body.md
           echo "OK: CHANGELOG.md descrive $GITHUB_REF_NAME ($(wc -l < release-body.md) righe)."
 
       - name: Upload release body
