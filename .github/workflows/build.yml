@@ -29,11 +29,13 @@ jobs:
     name: build
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      # Major aggiornate a quelle che girano su Node 24: i runner hanno deprecato Node 20
+      # (https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/).
+      - uses: actions/checkout@v7
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         with:
-          node-version: '22'
+          node-version: '24'
           cache: npm
 
       # npm ci (non npm install) per compilare esattamente le versioni del package-lock.
@@ -55,15 +57,23 @@ jobs:
           test -n "$(ls -A dist/assets)" || { echo "dist/assets vuota"; exit 1; }
           echo "dist OK — $(find dist -type f | wc -l) file"
 
+      # Abilita GitHub Pages in modalità "GitHub Actions" se non è già configurato, così il
+      # primo rilascio non richiede un passaggio manuale in Settings -> Pages.
+      - name: Setup Pages
+        if: inputs.pages-artifact
+        uses: actions/configure-pages@v6
+        with:
+          enablement: true
+
       - name: Upload Pages artifact
         if: inputs.pages-artifact
-        uses: actions/upload-pages-artifact@v3
+        uses: actions/upload-pages-artifact@v5
         with:
           path: dist
 
       - name: Upload dist artifact
         if: ${{ !inputs.pages-artifact }}
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: dist-${{ github.sha }}
           path: dist

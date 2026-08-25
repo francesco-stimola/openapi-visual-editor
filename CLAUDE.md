@@ -59,8 +59,13 @@ la procedura vive qui.
   git tag -a v1.0.0 -m "v1.0.0" && git push origin v1.0.0  # pubblica su Pages
   ```
 
-- Prerequisito una tantum su GitHub: **Settings → Pages → Source: GitHub Actions**.
+- L'abilitazione di Pages è automatica: `build.yml` esegue `actions/configure-pages` con
+  `enablement: true`, quindi non serve toccare Settings → Pages. Se l'organizzazione lo
+  impedisce, ripiegare sull'impostazione manuale **Settings → Pages → Source: GitHub Actions**.
   Il sito finisce su `https://<utente>.github.io/<repository>/`.
+- Le action sono aggiornate alle major che girano su Node 24 (i runner hanno deprecato Node 20):
+  `checkout@v7`, `setup-node@v7`, `upload-artifact@v7`, `upload-pages-artifact@v5`,
+  `configure-pages@v6`, `deploy-pages@v5`. Verificare `runs.using` prima di un downgrade.
 - Base path, risolto in [vite.config.js](vite.config.js) in quest'ordine: `VITE_BASE_PATH`
   (esplicito) → `VITE_REPO_NAME` (`/<nome>/`) → `GITHUB_REPOSITORY` (impostata da Actions) → `/`.
   In locale non serve configurare nulla (vedi [.env.example](.env.example) per una build locale
