@@ -65,10 +65,18 @@ la procedura vive qui.
   sezione estratta diventa il corpo della release su GitHub, perciò va scritta per chi usa
   l'applicazione ("cosa cambia per me?"), non come elenco di commit.
 
-- Prerequisito una tantum, manuale: **Settings → Pages → Source: GitHub Actions**.
-  Non è automatizzabile dal workflow: `actions/configure-pages` con `enablement: true` fallisce
-  con "Resource not accessible by integration", perché il `GITHUB_TOKEN` non può creare il sito
-  Pages (verificato sul tag v1.0.0). Senza questo passaggio il job di deploy fallisce.
+- Due prerequisiti una tantum, entrambi manuali e non automatizzabili dal workflow. Senza il
+  primo il deploy fallisce in "Setup Pages", senza il secondo in "deploy":
+
+  1. **Settings → Pages → Source: GitHub Actions.** `actions/configure-pages` con
+     `enablement: true` non basta: fallisce con "Resource not accessible by integration",
+     perché il `GITHUB_TOKEN` non può creare il sito Pages.
+  2. **Settings → Environments → `github-pages` → Deployment branches and tags → Add rule →
+     Tag → `v*.*.*`.** Abilitando Pages, GitHub crea l'ambiente `github-pages` con un'unica
+     regola sul branch `main`, quindi rifiuta i run partiti da un tag con
+     *"Tag v1.0.0 is not allowed to deploy to github-pages due to environment protection rules"*.
+     Dato che qui si pubblica solo su tag, la regola per i tag è indispensabile.
+
   Il sito finisce su `https://<utente>.github.io/<repository>/`.
 - Le action sono aggiornate alle major che girano su Node 24 (i runner hanno deprecato Node 20):
   `checkout@v7`, `setup-node@v7`, `upload-artifact@v7`, `upload-pages-artifact@v5`,
