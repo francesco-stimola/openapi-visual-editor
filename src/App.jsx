@@ -1,4 +1,4 @@
-import { Suspense, lazy, useCallback, useRef, useState } from 'react'
+import { Suspense, lazy, useCallback, useEffect, useRef, useState } from 'react'
 // Variante compatta dello stesso logo del README (assets/logo.html ne è il sorgente):
 // alle dimensioni dell'header il payoff sarebbe illeggibile.
 import logoUrl from '../assets/logo-compact.png'
@@ -29,7 +29,9 @@ export default function App() {
   const [notice, setNotice] = useState('')
   const [isDragging, setIsDragging] = useState(false)
 
-  // version/savedVersion servono a mostrare lo stato "modifiche non scaricate".
+  // Stato "modifiche non scaricate": isEditorDirty dice se l'utente ha modificato qualcosa,
+  // version/savedVersion se quella modifica è già stata esportata su file.
+  const [isEditorDirty, setIsEditorDirty] = useState(false)
   const [version, setVersion] = useState(0)
   const [savedVersion, setSavedVersion] = useState(0)
 
@@ -44,6 +46,7 @@ export default function App() {
     setSpec(nextSpec)
     setFileName(nextFileName)
     setFormat(nextFormat)
+    setIsEditorDirty(false)
     setVersion(0)
     setSavedVersion(0)
     setDocumentKey((key) => key + 1)
@@ -91,6 +94,10 @@ export default function App() {
   }, [loadSpec, newVersion])
 
   const handleEditorChange = useCallback((event) => {
+    // isDirty distingue le modifiche vere: all'apertura di un documento l'editor emette
+    // comunque due eventi (versione 0 e 1) con isDirty a false, e senza questo flag il
+    // documento risulterebbe "da esportare" senza che nessuno l'abbia toccato.
+    setIsEditorDirty(event.isDirty)
     setVersion(event.version)
     getContentRef.current = event.getContent
   }, [])
@@ -111,7 +118,21 @@ export default function App() {
     }
   }, [fileName, format, spec, version])
 
-  const hasUnsavedChanges = Boolean(spec) && version !== savedVersion
+  const hasUnsavedChanges = Boolean(spec) && isEditorDirty && version !== savedVersion
+
+  // Chiusura o ricarica con modifiche non ancora scaricate: qui l'unica copia del lavoro è in
+  // memoria, quindi si perderebbe. Il listener resta attivo solo mentre serve; il testo del
+  // messaggio lo decide il browser, non è personalizzabile.
+  useEffect(() => {
+    if (!hasUnsavedChanges) return undefined
+    const confirmExit = (event) => {
+      event.preventDefault()
+      // Alcuni browser richiedono ancora la vecchia convenzione returnValue.
+      event.returnValue = ''
+    }
+    window.addEventListener('beforeunload', confirmExit)
+    return () => window.removeEventListener('beforeunload', confirmExit)
+  }, [hasUnsavedChanges])
 
   return (
     <div

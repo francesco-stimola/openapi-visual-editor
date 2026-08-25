@@ -10,6 +10,23 @@ Tutte le modifiche rilevanti di questo progetto sono documentate qui, nel format
 > rilascio le cui modifiche nessuno ha scritto non avviene. Le voci rispondono a *"cosa cambia
 > per chi usa l'applicazione?"*.
 
+## [1.1.0] — 2026-08-25
+
+### Aggiunto
+
+- **Avviso prima di chiudere o ricaricare con modifiche non esportate.** Se hai modificato la
+  specifica e non l'hai ancora scaricata, il browser chiede conferma prima di abbandonare la
+  pagina: qui l'unica copia del lavoro è in memoria, quindi una ricarica distratta la
+  perderebbe. L'avviso compare solo dopo una modifica reale e sparisce appena scarichi il file.
+  Il testo del messaggio è quello standard del browser e non è personalizzabile.
+
+### Corretto
+
+- **Un documento appena aperto non risulta più "da esportare".** L'editor emette due eventi di
+  cambiamento al momento dell'apertura: venivano contati come modifiche, così la barra di stato
+  segnalava lavoro da salvare prima ancora di toccare qualcosa. Ora fa fede il flag `isDirty`
+  dell'editor, che quegli eventi iniziali marcano correttamente come non-modifiche.
+
 ## [1.0.1] — 2026-08-25
 
 ### Modificato
@@ -61,5 +78,6 @@ Prima pubblicazione.
 - L'avvio scarica circa 320 kB: l'editor e le sue dipendenze (PatternFly, modelli OpenAPI) sono
   caricati in lazy solo quando si apre o si crea una specifica.
 
+[1.1.0]: https://github.com/francesco-stimola/openapi-visual-editor/releases/tag/v1.1.0
 [1.0.1]: https://github.com/francesco-stimola/openapi-visual-editor/releases/tag/v1.0.1
 [1.0.0]: https://github.com/francesco-stimola/openapi-visual-editor/releases/tag/v1.0.0
