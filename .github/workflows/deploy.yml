@@ -33,13 +33,29 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  # Guardia: una release che il CHANGELOG non descrive non deve avvenire. Gira PRIMA della build,
-  # così un tag senza voce nel changelog non arriva nemmeno a pubblicare il sito.
+  # Guardie di rilascio: un tag che il CHANGELOG non descrive, o che non coincide con la versione
+  # dichiarata dal pacchetto, non deve pubblicare. Girano PRIMA della build, così un rilascio
+  # incoerente non arriva nemmeno a toccare il sito.
   changelog:
     name: changelog
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
+
+      # La versione mostrata nel footer dell'applicazione viene da package.json (vedi il define
+      # in vite.config.js): se divergesse dal tag, il sito pubblicato dichiarerebbe una versione
+      # che non esiste e il link alle note di rilascio porterebbe a una pagina inesistente.
+      - name: La versione del pacchetto deve coincidere con il tag
+        if: startsWith(github.ref, 'refs/tags/v')
+        run: |
+          tagged="${GITHUB_REF_NAME#v}"
+          declared="$(jq -r .version package.json)"
+          if [ "$tagged" != "$declared" ]; then
+            echo "::error::package.json dichiara la versione $declared, ma il tag è $GITHUB_REF_NAME."
+            echo "Allineare \"version\" a $tagged e rifare il tag prima di ripubblicare."
+            exit 1
+          fi
+          echo "OK: package.json e $GITHUB_REF_NAME dichiarano entrambi $declared."
 
       # Estrae la sezione "## [x.y.z]" corrispondente al tag e la usa come corpo della release.
       # Dipende solo dall'ordine delle sezioni (dalla più recente), non dalla loro numerazione.

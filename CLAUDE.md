@@ -59,6 +59,12 @@ la procedura vive qui.
   git tag -a v1.0.0 -m "v1.0.0" && git push origin v1.0.0  # pubblica su Pages
   ```
 
+- **Il campo `version` di `package.json` deve coincidere con il tag**, senza la `v`: è la
+  versione mostrata nel footer dell'applicazione ([vite.config.js](vite.config.js) la legge da
+  lì e la inietta come `__APP_VERSION__`), e il footer ne fa il link alle note di rilascio.
+  Il job `changelog` di `deploy.yml` confronta i due valori e **fallisce se divergono**, quindi
+  il bump va fatto insieme alla voce di changelog, prima di staccare il tag.
+
 - **Ogni tag richiede la sua voce in [CHANGELOG.md](CHANGELOG.md)**, aggiunta *prima* di
   staccarlo: il job `changelog` di `deploy.yml` estrae la sezione `## [x.y.z]` corrispondente e
   fallisce se non la trova, quindi un tag non descritto non pubblica né sito né release. La

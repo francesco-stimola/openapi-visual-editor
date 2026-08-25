@@ -20,6 +20,12 @@ const EditorPane = lazy(() => import('./EditorPane.jsx'))
 // rete: il link nel footer è quell'offerta. Aggiornarlo se il repository viene rinominato.
 const SOURCE_URL = 'https://github.com/francesco-stimola/openapi-visual-editor'
 
+// Iniettata da vite.config.js leggendo package.json: la pagina mostra la versione del pacchetto
+// da cui è stata compilata. Il rilascio avviene solo su tag e deploy.yml rifiuta un tag che non
+// corrisponda a quel numero, quindi la release referenziata qui esiste sempre.
+const APP_VERSION = __APP_VERSION__
+const RELEASE_URL = `${SOURCE_URL}/releases/tag/v${APP_VERSION}`
+
 export default function App() {
   const [spec, setSpec] = useState(null)
   const [fileName, setFileName] = useState('')
@@ -41,6 +47,18 @@ export default function App() {
   const getContentRef = useRef(null)
   const fileInputRef = useRef(null)
 
+  const hasUnsavedChanges = Boolean(spec) && isEditorDirty && version !== savedVersion
+
+  // Il documento vive solo in memoria: sostituirlo o chiuderlo perde le modifiche non esportate.
+  // Sono tutte transizioni interne alla pagina, quindi beforeunload (che copre soltanto chiusura
+  // e ricarica della scheda) non le intercetta: serve una conferma esplicita.
+  const confirmDiscard = useCallback(
+    (action) =>
+      !hasUnsavedChanges ||
+      window.confirm(`Ci sono modifiche non ancora scaricate: ${action} le farà perdere.\n\nContinuare?`),
+    [hasUnsavedChanges],
+  )
+
   const loadSpec = useCallback((nextSpec, nextFileName, nextFormat, message) => {
     getContentRef.current = null
     setSpec(nextSpec)
@@ -59,6 +77,9 @@ export default function App() {
       if (!file) return
       try {
         const { spec: parsedSpec, format: detectedFormat } = await readSpecFromFile(file)
+        // La conferma arriva a lettura riuscita: un file illeggibile non sostituisce nulla,
+        // quindi non ha senso chiedere se scartare il lavoro in corso.
+        if (!confirmDiscard('aprire un altro file')) return
         loadSpec(parsedSpec, file.name, detectedFormat, `File "${file.name}" caricato correttamente.`)
       } catch (cause) {
         // In caso di errore il documento eventualmente aperto resta intatto.
@@ -66,7 +87,7 @@ export default function App() {
         setError(cause instanceof Error ? cause.message : String(cause))
       }
     },
-    [loadSpec],
+    [confirmDiscard, loadSpec],
   )
 
   const handleFileInputChange = useCallback(
@@ -89,9 +110,10 @@ export default function App() {
   )
 
   const handleNewSpec = useCallback(() => {
+    if (!confirmDiscard('creare una nuova specifica')) return
     const label = NEW_SPEC_VERSIONS.find((item) => item.value === newVersion)?.label ?? newVersion
     loadSpec(createEmptySpec(newVersion), '', FORMATS.YAML, `Nuova specifica ${label} creata.`)
-  }, [loadSpec, newVersion])
+  }, [confirmDiscard, loadSpec, newVersion])
 
   const handleEditorChange = useCallback((event) => {
     // isDirty distingue le modifiche vere: all'apertura di un documento l'editor emette
@@ -118,7 +140,12 @@ export default function App() {
     }
   }, [fileName, format, spec, version])
 
-  const hasUnsavedChanges = Boolean(spec) && isEditorDirty && version !== savedVersion
+  // Riporta l'applicazione allo stato iniziale senza ricaricare la pagina: prima di questo
+  // pulsante l'unico modo per lasciare un documento aperto era il refresh del browser.
+  const handleClose = useCallback(() => {
+    if (!confirmDiscard('chiudere il documento')) return
+    loadSpec(null, '', FORMATS.YAML, 'Documento chiuso.')
+  }, [confirmDiscard, loadSpec])
 
   // Chiusura o ricarica con modifiche non ancora scaricate: qui l'unica copia del lavoro è in
   // memoria, quindi si perderebbe. Il listener resta attivo solo mentre serve; il testo del
@@ -199,6 +226,9 @@ export default function App() {
           <button type="button" className="btn btn--primary" onClick={handleDownload} disabled={!spec}>
             Scarica
           </button>
+          <button type="button" className="btn" onClick={handleClose} disabled={!spec}>
+            Chiudi
+          </button>
         </div>
       </header>
 
@@ -268,6 +298,16 @@ export default function App() {
             Codice sorgente
           </a>{' '}
           — AGPL-3.0-or-later, senza alcuna garanzia.
+        </span>
+        <span className="app__version">
+          <a
+            href={RELEASE_URL}
+            target="_blank"
+            rel="noreferrer noopener"
+            title={`Note di rilascio della versione ${APP_VERSION}`}
+          >
+            v{APP_VERSION}
+          </a>
         </span>
       </footer>
     </div>

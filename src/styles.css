@@ -297,6 +297,20 @@ body {
   color: var(--app-accent);
 }
 
+/* La versione è un dato tecnico: cifre allineate e tono defilato rispetto alle altre voci. */
+.app__version a {
+  font-family: 'RedHatMono', ui-monospace, 'Cascadia Code', Consolas, monospace;
+  font-variant-numeric: tabular-nums;
+  color: var(--app-muted);
+  text-decoration: none;
+}
+
+.app__version a:hover,
+.app__version a:focus-visible {
+  color: var(--app-accent);
+  text-decoration: underline;
+}
+
 /* ---------- Responsive ---------- */
 
 @media (max-width: 720px) {

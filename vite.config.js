@@ -1,6 +1,12 @@
+import { readFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import { defineConfig, loadEnv } from 'vite'
 import react from '@vitejs/plugin-react'
+
+// Unica fonte della versione mostrata in pagina. Letto da file invece che importato come
+// modulo JSON per non dipendere dal supporto agli import attribute della versione di Node.
+// deploy.yml verifica che questo numero coincida con il tag pubblicato.
+const { version } = JSON.parse(readFileSync(new URL('./package.json', import.meta.url), 'utf8'))
 
 /**
  * Il base path serve a far funzionare l'app quando viene pubblicata su
@@ -33,6 +39,9 @@ export default defineConfig(({ mode }) => {
   return {
     base: resolveBase(env),
     plugins: [react()],
+    define: {
+      __APP_VERSION__: JSON.stringify(version),
+    },
     resolve: {
       alias: {
         // @apitomy/openapi-editor espone solo l'entry point ".": l'alias permette

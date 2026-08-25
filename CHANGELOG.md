@@ -10,6 +10,22 @@ Tutte le modifiche rilevanti di questo progetto sono documentate qui, nel format
 > rilascio le cui modifiche nessuno ha scritto non avviene. Le voci rispondono a *"cosa cambia
 > per chi usa l'applicazione?"*.
 
+## [1.2.0] — 2026-08-25
+
+### Aggiunto
+
+- **Pulsante «Chiudi»**, accanto a *Scarica*: riporta l'applicazione alla schermata iniziale
+  senza ricaricare la pagina. Finora, una volta aperta una specifica, l'unico modo per tornare
+  indietro o passare a un altro documento era il refresh del browser.
+- **Conferma prima di scartare modifiche non esportate.** Aprire un altro file, creare una nuova
+  specifica o chiudere il documento chiedono conferma quando ci sono modifiche non ancora
+  scaricate. Prima l'avviso compariva solo chiudendo o ricaricando la scheda, mentre queste tre
+  azioni buttavano via il lavoro senza dire nulla. Aprire un file illeggibile non chiede niente:
+  il documento aperto resta comunque intatto.
+- **La versione dell'applicazione è indicata nel footer** e rimanda alle note di rilascio
+  corrispondenti. È la versione del pacchetto da cui la pagina è stata compilata, così è sempre
+  chiaro cosa si sta usando — utile soprattutto quando si segnala un problema.
+
 ## [1.1.0] — 2026-08-25
 
 ### Aggiunto
@@ -78,6 +94,7 @@ Prima pubblicazione.
 - L'avvio scarica circa 320 kB: l'editor e le sue dipendenze (PatternFly, modelli OpenAPI) sono
   caricati in lazy solo quando si apre o si crea una specifica.
 
+[1.2.0]: https://github.com/francesco-stimola/openapi-visual-editor/releases/tag/v1.2.0
 [1.1.0]: https://github.com/francesco-stimola/openapi-visual-editor/releases/tag/v1.1.0
 [1.0.1]: https://github.com/francesco-stimola/openapi-visual-editor/releases/tag/v1.0.1
 [1.0.0]: https://github.com/francesco-stimola/openapi-visual-editor/releases/tag/v1.0.0
