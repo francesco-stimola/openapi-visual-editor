@@ -3,8 +3,11 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <!-- Stesso simbolo del logo nel README: assets/logo.html ne è il sorgente. -->
-    <link rel="icon" type="image/png" href="/favicon.png" />
+    <!-- Stesso simbolo del logo nel README: assets/logo.html ne è il sorgente.
+         Più misure perché a 16 px il browser sceglie la 32 invece di ridurre la 312. -->
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png" />
+    <link rel="icon" type="image/png" sizes="312x312" href="/favicon.png" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
     <meta
       name="description"
       content="Editor visuale per specifiche Swagger 2.0 e OpenAPI 3.x: i file vengono elaborati solo nel browser."

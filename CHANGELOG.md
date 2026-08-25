@@ -16,8 +16,19 @@ Tutte le modifiche rilevanti di questo progetto sono documentate qui, nel format
 
 - **L'applicazione usa lo stesso logo del repository.** L'intestazione, che mostrava un titolo
   testuale, ora presenta il logo nella variante compatta (marchio e nome, senza payoff: a quelle
-  dimensioni sarebbe illeggibile), e la scheda del browser ha finalmente una **favicon** ricavata
-  dal solo marchio. Entrambe le immagini nascono da `assets/logo.html`, unico sorgente del logo.
+  dimensioni sarebbe illeggibile), affiancato dalla frase *"Swagger 2.0 e OpenAPI 3.x, elaborati
+  solo nel tuo browser"*, che su schermi stretti passa sotto al logo.
+- **La scheda del browser ha una favicon**, nella variante a colori invertiti (glifo blu su
+  trasparente) e in tre misure: 32 px per la tab, 312 px per gli schermi ad alta densità e una
+  apple-touch-icon da 180 px, che resta a tessera piena perché iOS non gestisce la trasparenza
+  sulla schermata home.
+- Tutte le immagini nascono da `assets/logo.html`, che resta l'unico sorgente del logo e ne
+  genera le varianti (`?compact`, `?icon`, `?theme=dark`).
+
+### Documentazione
+
+- Il README porta in evidenza il **link alla demo pubblicata**, come badge e come richiamo sotto
+  al titolo.
 
 ## [1.0.0] — 2026-08-25
 

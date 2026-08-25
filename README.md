@@ -12,12 +12,15 @@
 
 YAML e JSON · modifica visuale · download nel formato originale · nessun backend
 
+[![Demo online](https://img.shields.io/badge/demo-online-2ea44f?logo=githubpages&logoColor=white)](https://francesco-stimola.github.io/openapi-visual-editor/)
 [![CI](https://github.com/francesco-stimola/openapi-visual-editor/actions/workflows/ci.yml/badge.svg)](https://github.com/francesco-stimola/openapi-visual-editor/actions/workflows/ci.yml)
 [![Deploy](https://github.com/francesco-stimola/openapi-visual-editor/actions/workflows/deploy.yml/badge.svg)](https://github.com/francesco-stimola/openapi-visual-editor/actions/workflows/deploy.yml)
 [![Release](https://img.shields.io/github/v/release/francesco-stimola/openapi-visual-editor?sort=semver&label=release)](https://github.com/francesco-stimola/openapi-visual-editor/releases/latest)
 [![License: AGPL v3](https://img.shields.io/badge/license-AGPL--3.0--or--later-blue.svg)](LICENSE)
 [![Node](https://img.shields.io/badge/node-%E2%89%A5%2020.19-green.svg)](https://nodejs.org)
 [![Dati](https://img.shields.io/badge/dati-solo%20nel%20browser-brightgreen.svg)](#come-funziona)
+
+### ▶ [Provalo subito su francesco-stimola.github.io/openapi-visual-editor](https://francesco-stimola.github.io/openapi-visual-editor/)
 
 [Avvio rapido](#avvio-rapido) · [Cosa fa](#cosa-fa) · [Come funziona](#come-funziona) · [Changelog](CHANGELOG.md) · [Licenza](#licenza)
 

@@ -126,10 +126,12 @@ export default function App() {
       onDrop={handleDrop}
     >
       <header className="app__header">
-        <h1 className="app__brand">
-          {/* Il payoff è già nel logo: ripeterlo accanto sarebbe una didascalia di sé stesso. */}
-          <img src={logoUrl} alt="OpenAPI Visual Editor — il file non lascia il browser" />
-        </h1>
+        <div className="app__brand">
+          <h1>
+            <img src={logoUrl} alt="OpenAPI Visual Editor" />
+          </h1>
+          <p className="app__claim">Swagger 2.0 e OpenAPI 3.x, elaborati solo nel tuo browser.</p>
+        </div>
 
         <div className="app__actions">
           <input

@@ -64,6 +64,17 @@
      sarebbe illeggibile, quindi resta solo il marchio con il nome, e i margini si stringono. */
   body.compact .tag { display: none; }
   body.compact .logo { padding: 12px 14px; gap: 26px; }
+
+  /* Variante icona (?icon) per la favicon: colori invertiti, niente tessera blu, glifo in blu
+     su trasparente. Il glifo cresce per occupare il riquadro lasciato libero dallo sfondo,
+     altrimenti a 16 px resterebbe un francobollo dentro un bordo vuoto. */
+  body.icon .mark { background: none; box-shadow: none; gap: 7px; }
+  body.icon .brace { font-size: 54px; color: var(--accent-2); opacity: 1; }
+  body.icon .rows { gap: 8px; }
+  body.icon .rows i { height: 11px; background: var(--accent-2); opacity: 1; }
+  body.icon .rows i:nth-child(1) { width: 32px; }
+  body.icon .rows i:nth-child(2) { width: 44px; background: var(--accent); }
+  body.icon .rows i:nth-child(3) { width: 24px; margin-left: 10px; }
 </style>
 <div class="logo">
   <div class="mark">
@@ -80,4 +91,5 @@
   const params = new URLSearchParams(location.search)
   if (params.get('theme') === 'dark') document.body.classList.add('dark')
   if (params.has('compact')) document.body.classList.add('compact')
+  if (params.has('icon')) document.body.classList.add('icon')
 </script>
