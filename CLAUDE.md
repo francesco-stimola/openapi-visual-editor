@@ -105,11 +105,12 @@ la procedura vive qui.
 
   Il sito finisce su `https://<utente>.github.io/<repository>/`.
 
-  Un terzo prerequisito riguarda GHCR, ma solo **dopo** il primo push dell'immagine: il package
-  nasce privato. Settings → Packages → `openapi-visual-editor` → Package settings → Change
-  visibility → Public. Finché resta privato, `docker pull` chiede l'autenticazione e consuma la
-  quota storage dell'account; da pubblico, storage e banda sono gratuiti e illimitati — come i
-  minuti di Actions sui runner standard e gli asset delle release (limite: 2 GiB per file).
+  Su GHCR invece non serve alcun prerequisito: il package eredita la visibilità del repository,
+  quindi è nato pubblico e si scarica senza credenziali (verificato al rilascio di v1.3.0). Se in
+  una copia privata risultasse privato, `docker pull` chiederebbe l'autenticazione e consumerebbe
+  la quota storage: si cambia da Settings → Packages → `openapi-visual-editor` → Package settings
+  → Change visibility. Da pubblico, storage e banda sono gratuiti e illimitati — come i minuti di
+  Actions sui runner standard e gli asset delle release (limite: 2 GiB per file).
 - Le action sono aggiornate alle major che girano su Node 24 (i runner hanno deprecato Node 20):
   `checkout@v7`, `setup-node@v7`, `upload-artifact@v7`, `download-artifact@v8`,
   `upload-pages-artifact@v5`, `configure-pages@v6`, `deploy-pages@v5`, `action-gh-release@v3`,

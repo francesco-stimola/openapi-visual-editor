@@ -8,10 +8,11 @@ name: Docker image
 # build.yml: la scelta è spiegata nel Dockerfile stesso (un'immagine dev'essere ricostruibile
 # da chi la riceve, non solo dalla CI).
 #
-# Prerequisito una tantum, manuale: dopo il PRIMO push il package nasce privato.
-# Settings -> Packages -> openapi-visual-editor -> Package settings -> Change visibility ->
-# Public. Finché resta privato, `docker pull` chiede l'autenticazione e consuma la quota
-# storage dell'account, mentre i package pubblici sono gratuiti e illimitati.
+# Visibilità: il package eredita quella del repository, quindi qui è nato pubblico e si scarica
+# senza credenziali — verificato al primo rilascio (v1.3.0), non serve alcun passo manuale.
+# Se in una copia privata del repository risultasse privato, `docker pull` chiederebbe
+# l'autenticazione e consumerebbe la quota storage dell'account: si corregge da
+# Settings -> Packages -> openapi-visual-editor -> Package settings -> Change visibility.
 on:
   workflow_call:
     inputs:
