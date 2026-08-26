@@ -10,6 +10,30 @@ Tutte le modifiche rilevanti di questo progetto sono documentate qui, nel format
 > rilascio le cui modifiche nessuno ha scritto non avviene. Le voci rispondono a *"cosa cambia
 > per chi usa l'applicazione?"*.
 
+## [1.3.0] — 2026-08-26
+
+### Aggiunto
+
+- **L'applicazione si può ospitare per conto proprio.** Ogni release allega ora
+  `openapi-visual-editor-<versione>-dist.zip`: la stessa applicazione già compilata, fatta di
+  soli file statici, da servire con un qualunque server web. I riferimenti interni sono
+  relativi, quindi funziona anche sotto un sottopercorso
+  (`https://intranet.esempio.it/strumenti/openapi/`) e non solo sulla radice di un dominio.
+  Nello zip ci sono anche la licenza e un `LEGGIMI.txt` con le istruzioni; il file
+  `SHA256SUMS` allegato accanto permette di verificarne l'integrità.
+- **Immagine Docker ufficiale**, per chi preferisce non maneggiare file:
+  `ghcr.io/francesco-stimola/openapi-visual-editor`. È un nginx già configurato (compressione
+  attiva, cache corretta sugli asset), pubblicata per cinque architetture — `linux/amd64`,
+  `linux/386`, `linux/arm64`, `linux/arm/v7` e `linux/arm/v6` — quindi anche su Mac Apple
+  Silicon, su NAS e SBC a 32 bit e fino al Raspberry Pi Zero. Docker sceglie da sé la variante
+  giusta. I tag disponibili sono la versione esatta (`1.3.0`), la sola coppia maggiore-minore
+  (`1.3`) e `latest`.
+
+Entrambe le forme sono la stessa applicazione della demo online, con la stessa garanzia: la
+specifica non lascia il browser, e non c'è alcun backend da esporre. L'unica richiesta di rete
+resta il caricamento dell'editor Monaco da CDN nella vista *Source*, che quindi non funziona in
+una rete isolata; tutto il resto sì.
+
 ## [1.2.0] — 2026-08-25
 
 ### Aggiunto

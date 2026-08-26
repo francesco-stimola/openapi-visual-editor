@@ -1,0 +1,29 @@
+# Il contesto di build deve contenere solo ciò che serve a `npm ci && npm run build`.
+# node_modules in particolare: copiarlo renderebbe il build lento e potrebbe portare
+# nell'immagine binari compilati per l'architettura sbagliata.
+node_modules
+dist
+dist-ssr
+build
+
+.git
+.github
+.gitignore
+.vscode
+.idea
+
+# Le variabili locali non devono influenzare il base path dell'immagine.
+.env
+.env.*
+!.env.example
+
+Dockerfile
+.dockerignore
+*.log
+npm-debug.log*
+
+# Documentazione: non serve alla build. Restano fuori dall'elenco, perché servono, LICENSE
+# (l'immagine è materiale distribuito) e assets/, da cui App.jsx importa il logo compatto.
+CHANGELOG.md
+CLAUDE.md
+README.md

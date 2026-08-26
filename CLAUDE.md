@@ -48,9 +48,29 @@ Applicazione React + Vite (JavaScript, nessun TypeScript) che incorpora il compo
 Il README non documenta la pubblicazione di proposito (presenta il progetto, non lo amministra):
 la procedura vive qui.
 
-- `build.yml` è l'unico posto in cui si compila: `ci.yml` (push su main e PR),
+- `build.yml` è l'unico posto in cui si compila il sito: `ci.yml` (push su main e PR),
   `manual-build.yml` (on-demand da un branch qualsiasi, artifact 30 giorni) e `deploy.yml`
   (tag `v*.*.*`, o esecuzione manuale) lo richiamano. Non duplicare i passi di build nei chiamanti.
+  L'input `base-path` sovrascrive il base path: vuoto = `/<repository>/` (GitHub Pages), `./` =
+  riferimenti relativi, la variante usata dal pacchetto allegato alla release e dall'immagine.
+  `artifact-name` serve solo a distinguere i due artifact quando un run compila due volte.
+- `docker.yml` è l'unico posto in cui si costruisce l'immagine, con lo stesso schema:
+  `manual-build.yml` lo chiama con `push: false` (prova) e `deploy.yml` con `push: true`.
+  Il `Dockerfile` compila l'app al suo interno, ed è l'unica eccezione consapevole alla regola
+  "si compila solo in `build.yml`": un'immagine dev'essere ricostruibile da chi la riceve, non
+  solo dalla CI. Se cambiano i passi di build, vanno allineati entrambi.
+  L'immagine esce per `linux/amd64`, `linux/386`, `linux/arm64`, `linux/arm/v7` e `linux/arm/v6`:
+  è tutto ciò che `nginx:alpine` pubblica, tolte `ppc64le`, `s390x` e `riscv64`. Costano quanto
+  una sola architettura **finché lo stage finale del `Dockerfile` contiene solo `COPY`**: non
+  dovendo eseguire nulla, non serve QEMU. Un `RUN` aggiunto lì obbligherebbe a emulare ciascuna
+  architettura e a introdurre `docker/setup-qemu-action`.
+- Un tag pubblica **tre** cose: il sito su Pages, l'immagine su `ghcr.io/<utente>/<repository>`
+  (tag `x.y.z`, `x.y`, `latest`) e la release, a cui sono allegati
+  `openapi-visual-editor-<versione>-dist.zip` e `SHA256SUMS`. La release è l'ultimo job proprio
+  perché è la pagina che annuncia gli altri due: `needs: [deploy, package, docker]`.
+- "Manual build" è la prova generale del rilascio: costruisce sito, pacchetto e immagine senza
+  pubblicare niente. Usarla prima di staccare un tag; l'unico passo che resta non provato è il
+  push su GHCR, che richiede un tag.
 - La pubblicazione su Pages avviene **solo su tag**: non aggiungere trigger di deploy sul push
   di `main`.
 
@@ -84,9 +104,17 @@ la procedura vive qui.
      Dato che qui si pubblica solo su tag, la regola per i tag è indispensabile.
 
   Il sito finisce su `https://<utente>.github.io/<repository>/`.
+
+  Un terzo prerequisito riguarda GHCR, ma solo **dopo** il primo push dell'immagine: il package
+  nasce privato. Settings → Packages → `openapi-visual-editor` → Package settings → Change
+  visibility → Public. Finché resta privato, `docker pull` chiede l'autenticazione e consuma la
+  quota storage dell'account; da pubblico, storage e banda sono gratuiti e illimitati — come i
+  minuti di Actions sui runner standard e gli asset delle release (limite: 2 GiB per file).
 - Le action sono aggiornate alle major che girano su Node 24 (i runner hanno deprecato Node 20):
-  `checkout@v7`, `setup-node@v7`, `upload-artifact@v7`, `upload-pages-artifact@v5`,
-  `configure-pages@v6`, `deploy-pages@v5`. Verificare `runs.using` prima di un downgrade.
+  `checkout@v7`, `setup-node@v7`, `upload-artifact@v7`, `download-artifact@v8`,
+  `upload-pages-artifact@v5`, `configure-pages@v6`, `deploy-pages@v5`, `action-gh-release@v3`,
+  e per l'immagine `setup-buildx-action@v4`, `login-action@v4`, `metadata-action@v6`,
+  `build-push-action@v7`. Verificare `runs.using` prima di un downgrade.
 - Base path, risolto in [vite.config.js](vite.config.js) in quest'ordine: `VITE_BASE_PATH`
   (esplicito) → `VITE_REPO_NAME` (`/<nome>/`) → `GITHUB_REPOSITORY` (impostata da Actions) → `/`.
   In locale non serve configurare nulla (vedi [.env.example](.env.example) per una build locale

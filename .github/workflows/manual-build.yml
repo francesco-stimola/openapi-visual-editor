@@ -6,12 +6,18 @@ name: Manual build
 # di deploy: da qui è impossibile pubblicare per sbaglio su GitHub Pages.
 #
 # Come si usa: tab Actions -> "Manual build" -> "Run workflow" -> scegliere il branch.
-# L'artifact prodotto è usa e getta (30 giorni), perché una build manuale è quasi sempre
+# Gli artifact prodotti sono usa e getta (30 giorni), perché una build manuale è quasi sempre
 # una verifica una tantum.
+#
+# È anche la prova generale del rilascio: costruisce tutti e tre i prodotti di un tag — il sito,
+# il pacchetto scaricabile e l'immagine Docker — senza pubblicarne nessuno. L'unico passo che
+# resta inevitabilmente non provato è il push su GHCR, che ha bisogno di un tag.
 on:
   workflow_dispatch:
 
-# Minimo privilegio: chiama solo il workflow di build, che legge il repository e basta.
+# Minimo privilegio: nessuno dei job qui sotto pubblica niente, quindi la sola lettura basta.
+# In particolare l'immagine viene costruita senza `packages: write`, così da qui è impossibile
+# pubblicarla per sbaglio.
 permissions:
   contents: read
 
@@ -21,3 +27,17 @@ jobs:
     with:
       pages-artifact: false
       retention-days: 30
+
+  # Stessa build del pacchetto allegato alla release: base path relativo, non "/<repository>/".
+  package:
+    uses: ./.github/workflows/build.yml
+    with:
+      pages-artifact: false
+      base-path: ./
+      artifact-name: dist-portable-${{ github.sha }}
+      retention-days: 30
+
+  docker:
+    uses: ./.github/workflows/docker.yml
+    with:
+      push: false

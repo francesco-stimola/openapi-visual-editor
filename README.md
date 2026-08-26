@@ -16,13 +16,14 @@ YAML e JSON · modifica visuale · download nel formato originale · nessun back
 [![CI](https://github.com/francesco-stimola/openapi-visual-editor/actions/workflows/ci.yml/badge.svg)](https://github.com/francesco-stimola/openapi-visual-editor/actions/workflows/ci.yml)
 [![Deploy](https://github.com/francesco-stimola/openapi-visual-editor/actions/workflows/deploy.yml/badge.svg)](https://github.com/francesco-stimola/openapi-visual-editor/actions/workflows/deploy.yml)
 [![Release](https://img.shields.io/github/v/release/francesco-stimola/openapi-visual-editor?sort=semver&label=release)](https://github.com/francesco-stimola/openapi-visual-editor/releases/latest)
+[![Immagine Docker](https://img.shields.io/badge/ghcr.io-openapi--visual--editor-2496ed?logo=docker&logoColor=white)](https://github.com/francesco-stimola/openapi-visual-editor/pkgs/container/openapi-visual-editor)
 [![License: AGPL v3](https://img.shields.io/badge/license-AGPL--3.0--or--later-blue.svg)](LICENSE)
 [![Node](https://img.shields.io/badge/node-%E2%89%A5%2020.19-green.svg)](https://nodejs.org)
 [![Dati](https://img.shields.io/badge/dati-solo%20nel%20browser-brightgreen.svg)](#come-funziona)
 
 ### ▶ [Provalo subito su francesco-stimola.github.io/openapi-visual-editor](https://francesco-stimola.github.io/openapi-visual-editor/)
 
-[Avvio rapido](#avvio-rapido) · [Cosa fa](#cosa-fa) · [Come funziona](#come-funziona) · [Changelog](CHANGELOG.md) · [Licenza](#licenza)
+[Avvio rapido](#avvio-rapido) · [Ospitarla da te](#ospitarla-da-te) · [Cosa fa](#cosa-fa) · [Come funziona](#come-funziona) · [Changelog](CHANGELOG.md) · [Licenza](#licenza)
 
 </div>
 
@@ -48,7 +49,41 @@ npm run build      # produce dist/
 npm run preview    # serve dist/ su http://localhost:4173
 ```
 
-Requisiti: Node.js ≥ 20.19 (o ≥ 22.12) e npm ≥ 10. Nessun Docker, database o servizio cloud.
+Requisiti per lavorarci: Node.js ≥ 20.19 (o ≥ 22.12) e npm ≥ 10. Nessun database e nessun
+servizio cloud — e nemmeno Docker, se non per l'immagine pronta qui sotto.
+
+## Ospitarla da te
+
+L'applicazione è fatta di soli file statici: non c'è un backend da far girare, quindi la serve
+qualunque server web. Utile se preferisci non dipendere da GitHub Pages, o se deve stare su una
+rete interna.
+
+**Con Docker** — un nginx già configurato, pubblicato per `linux/amd64`, `linux/386`,
+`linux/arm64`, `linux/arm/v7` e `linux/arm/v6` (Docker sceglie da sé la variante giusta):
+
+```bash
+docker run --rm -p 8080:80 ghcr.io/francesco-stimola/openapi-visual-editor:latest
+# poi apri http://localhost:8080
+```
+
+**Dal pacchetto allegato alla release** — scarica `openapi-visual-editor-<versione>-dist.zip`
+dall'[ultima release](https://github.com/francesco-stimola/openapi-visual-editor/releases/latest)
+(`SHA256SUMS`, accanto, ne verifica l'integrità), scompattalo e servi la cartella:
+
+```bash
+npx serve openapi-visual-editor-<versione>
+```
+
+I riferimenti interni sono relativi, quindi funziona anche sotto un sottopercorso
+(`https://intranet.esempio.it/strumenti/openapi/`) e non solo sulla radice di un dominio.
+Aprire `index.html` con un doppio clic (`file://`) invece no: i browser rifiutano i moduli
+JavaScript caricati così, serve un server HTTP.
+
+**Ricompilandola** — `VITE_BASE_PATH=./ npm run build` produce esattamente la stessa `dist/`
+del pacchetto; vedi [.env.example](.env.example) per le altre varianti di base path.
+
+In tutti e tre i casi vale l'art. 13 dell'AGPL: se pubblichi una versione modificata, devi
+offrirne il sorgente a chi la usa.
 
 ## Cosa fa
 

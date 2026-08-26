@@ -10,11 +10,12 @@ name: Deploy to GitHub Pages
 # Prerequisito una tantum, non automatizzabile: Settings -> Pages -> Source: GitHub Actions
 # (il GITHUB_TOKEN non può creare il sito Pages, vedi il commento in build.yml).
 #
-# `workflow_dispatch` resta come via di fuga per ripubblicare a mano il sito (Actions -> "Deploy
-# to GitHub Pages" -> "Run workflow"): non crea alcuna release, perché una release senza tag non
-# esiste. Attenzione: l'ambiente `github-pages` ammette solo i ref elencati nelle sue deployment
-# rules; oggi c'è il solo `v*.*.*` (tag), quindi un'esecuzione manuale da `main` verrebbe
-# rifiutata finché non si aggiunge anche una regola di branch per `main`.
+# `workflow_dispatch` resta come via di fuga per ripubblicare a mano il SOLO sito (Actions ->
+# "Deploy to GitHub Pages" -> "Run workflow"): non crea alcuna release, perché una release senza
+# tag non esiste, e non tocca né il pacchetto scaricabile né l'immagine Docker, che esistono solo
+# in funzione di una versione. Attenzione: l'ambiente `github-pages` ammette solo i ref elencati
+# nelle sue deployment rules; oggi c'è il solo `v*.*.*` (tag), quindi un'esecuzione manuale da
+# `main` verrebbe rifiutata finché non si aggiunge anche una regola di branch per `main`.
 # Per la sola verifica di un branch, senza pubblicare, usare "Manual build".
 on:
   push:
@@ -73,11 +74,22 @@ jobs:
             echo "Aggiungere una voce '## [$version] — AAAA-MM-GG' prima di ripubblicare il tag."
             exit 1
           fi
-          # Rimanda al changelog completo: la release mostra solo la propria sezione, mentre
-          # il file al tag conserva anche la storia delle versioni precedenti.
+          # In coda alla sezione del changelog: i tre modi di usare questa versione (il sito,
+          # l'immagine Docker, il pacchetto allegato qui sotto) e il rimando al changelog
+          # completo, che al tag conserva anche la storia delle versioni precedenti.
+          # I nomi dei package su GHCR sono minuscoli, mentre GITHUB_REPOSITORY conserva le
+          # maiuscole del nome scelto su GitHub: senza il tr, il comando suggerito potrebbe
+          # non funzionare.
+          image="ghcr.io/$(echo "$GITHUB_REPOSITORY" | tr '[:upper:]' '[:lower:]')"
           {
             echo
             echo "---"
+            echo
+            echo "### Come si usa questa versione"
+            echo
+            echo "- **Online**, senza installare niente: <https://${GITHUB_REPOSITORY_OWNER}.github.io/${GITHUB_REPOSITORY#*/}/>"
+            echo "- **Con Docker**: \`docker run --rm -p 8080:80 ${image}:${version}\`"
+            echo "- **Sul tuo server**: scarica \`openapi-visual-editor-${version}-dist.zip\` qui sotto e servi la cartella con un qualunque server statico. \`SHA256SUMS\` ne verifica l'integrità."
             echo
             echo "📓 [Changelog completo](${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/blob/${GITHUB_REF_NAME}/CHANGELOG.md) · [Sito pubblicato](https://${GITHUB_REPOSITORY_OWNER}.github.io/${GITHUB_REPOSITORY#*/}/)"
           } >> release-body.md
@@ -103,6 +115,41 @@ jobs:
     with:
       pages-artifact: true
 
+  # Pacchetto scaricabile: la stessa applicazione, ricompilata con base path relativo ("./")
+  # invece di "/<repository>/". È ciò che rende la dist servibile da qualunque percorso, e
+  # quindi utile a chi la ospita per conto proprio: la dist di Pages funzionerebbe solo sotto
+  # l'indirizzo di Pages. Stesso build.yml del sito, nessun passo duplicato.
+  package:
+    needs: changelog
+    # Solo su tag: un'esecuzione manuale ripubblica il sito e nient'altro (vedi in testa).
+    if: startsWith(github.ref, 'refs/tags/v')
+    uses: ./.github/workflows/build.yml
+    permissions:
+      contents: read
+    with:
+      pages-artifact: false
+      base-path: ./
+      artifact-name: dist-portable
+      # Serve solo a passare la dist al job `release`, qualche minuto più tardi.
+      retention-days: 1
+
+  # Immagine Docker su GHCR. `needs: changelog` e non `needs: deploy`: l'immagine è un canale
+  # di distribuzione indipendente dal sito, e farla aspettare Pages allungherebbe il rilascio
+  # senza proteggere da nulla. Resta comunque soggetta alle stesse guardie di coerenza fra tag,
+  # package.json e CHANGELOG. Se Pages fallisse dopo il push dell'immagine, la release non
+  # verrebbe creata (vedi `release`) e basterebbe ristaccare il tag dopo aver corretto.
+  docker:
+    needs: changelog
+    # Idem: senza questa guardia un'esecuzione manuale da main pubblicherebbe su GHCR
+    # un'immagine taggata "main", che non corrisponde ad alcuna versione rilasciata.
+    if: startsWith(github.ref, 'refs/tags/v')
+    uses: ./.github/workflows/docker.yml
+    permissions:
+      contents: read
+      packages: write
+    with:
+      push: true
+
   deploy:
     name: deploy
     needs: build
@@ -118,19 +165,72 @@ jobs:
         id: deployment
         uses: actions/deploy-pages@v5
 
-  # La release esiste solo se il sito è andato davvero online: `needs: deploy`.
+  # La release è l'ultimo passo perché è la pagina che annuncia tutto il resto: esiste solo se
+  # il sito è andato davvero online (`deploy`), se il pacchetto è stato compilato (`package`)
+  # e se l'immagine è su GHCR (`docker`).
   release:
     name: release
-    needs: deploy
+    needs: [deploy, package, docker]
     if: startsWith(github.ref, 'refs/tags/v')
     runs-on: ubuntu-latest
     # L'unico privilegio in più dell'intero workflow: creare la release.
     permissions:
       contents: write
     steps:
+      # Il checkout serve solo per allegare LICENSE al pacchetto, e va fatto PRIMA dei
+      # download: actions/checkout ripulisce la workspace e cancellerebbe gli artifact.
+      - uses: actions/checkout@v7
+
       - uses: actions/download-artifact@v8
         with:
           name: release-body
+
+      - uses: actions/download-artifact@v8
+        with:
+          name: dist-portable
+          path: pacchetto/dist
+
+      # Uno zip con dentro una sola cartella (non si sparpaglia scompattandolo), la licenza e
+      # due righe di istruzioni. LICENSE e il rimando al sorgente non sono un vezzo: qui si
+      # distribuisce codice compilato sotto AGPL, che dev'essere accompagnato dall'offerta
+      # del sorgente corrispondente.
+      - name: Prepara il pacchetto scaricabile
+        run: |
+          version="${GITHUB_REF_NAME#v}"
+          name="openapi-visual-editor-${version}"
+          mv pacchetto/dist "pacchetto/${name}"
+          cp LICENSE "pacchetto/${name}/LICENSE"
+          cat > "pacchetto/${name}/LEGGIMI.txt" <<TXT
+          OpenAPI Visual Editor ${version}
+          Editor visuale per specifiche Swagger 2.0 e OpenAPI 3.x, interamente lato browser.
+
+          Questa cartella è l'applicazione già compilata: soli file statici, nessun backend,
+          niente Node.js da installare. La specifica che apri resta nel tuo browser.
+
+          COME SI SERVE — un modo qualsiasi va bene, per esempio:
+              npx serve .
+              python3 -m http.server 8000
+          oppure copiando la cartella nella document root di nginx, Apache o IIS.
+
+          I riferimenti agli asset sono relativi, quindi l'applicazione funziona anche da un
+          sottopercorso (https://esempio.it/strumenti/openapi/), non solo dalla radice.
+          Aprire index.html con un doppio clic (file://) invece NON funziona: i browser
+          rifiutano i moduli JavaScript caricati da file://, serve un server HTTP.
+
+          Unica richiesta di rete dell'applicazione: la vista "Source" scarica l'editor Monaco
+          da cdn.jsdelivr.net al primo utilizzo. La specifica non viene comunque inviata.
+
+          Licenza: AGPL-3.0-or-later, vedi il file LICENSE.
+          Sorgente completo di questa versione:
+          ${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/tree/${GITHUB_REF_NAME}
+          TXT
+          (cd pacchetto && zip -qr "../${name}-dist.zip" "${name}")
+          # Nello stesso spirito del "Verify dist" di build.yml: un archivio vuoto o mai creato
+          # dev'essere un errore, non un allegato inutile pubblicato in silenzio.
+          test -s "${name}-dist.zip" || { echo "::error::${name}-dist.zip non è stato creato."; exit 1; }
+          sha256sum "${name}-dist.zip" > SHA256SUMS
+          echo "OK: ${name}-dist.zip ($(du -h "${name}-dist.zip" | cut -f1))"
+          cat SHA256SUMS
 
       # body_path + generate_release_notes insieme: la sezione curata del CHANGELOG apre la
       # pagina, sotto GitHub aggiunge il proprio elenco generato.
@@ -138,3 +238,6 @@ jobs:
         with:
           body_path: release-body.md
           generate_release_notes: true
+          files: |
+            openapi-visual-editor-*-dist.zip
+            SHA256SUMS
